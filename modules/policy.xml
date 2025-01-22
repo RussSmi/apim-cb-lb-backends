@@ -1,0 +1,22 @@
+<policies>
+    <inbound>
+        <set-backend-service id="apim-generated-policy" backend-id="{add primary backend here}" />
+        <azure-openai-token-limit tokens-per-minute="999999999" counter-key="@(context.Subscription.Id)" estimate-prompt-tokens="true" tokens-consumed-header-name="consumed-tokens" remaining-tokens-header-name="remaining-tokens" />
+        <azure-openai-emit-token-metric>
+            <dimension name="Subscription ID" />
+        </azure-openai-emit-token-metric>
+        <authentication-managed-identity resource="https://cognitiveservices.azure.com/" />
+        <base />
+    </inbound>
+    <backend>
+        <retry condition="@(context.Response.StatusCode == 429)" count="2" interval="1" first-fast-retry="true">
+            <forward-request buffer-request-body="true" />
+        </retry>
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
